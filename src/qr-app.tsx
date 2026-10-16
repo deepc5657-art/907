@@ -15,10 +15,11 @@ import { Suspense, useEffect, lazy } from 'react'
 
 const SentryErrorBoundary = lazy(() => import('@/components/SentryErrorBoundary').then(m => ({ default: m.SentryErrorBoundary })))
 
-document.querySelectorAll('link[rel="manifest"]').forEach((el) => {
-  const href = el.getAttribute('href')
-  if (href && href !== '/qr-manifest.webmanifest') el.remove()
-})
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/qr-sw.js').catch(() => {})
+  })
+}
 
 function Loading() {
   const { t } = useI18n()

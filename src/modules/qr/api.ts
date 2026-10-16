@@ -153,7 +153,7 @@ export async function fetchWhatsappContacts(): Promise<Contact[]> {
 export async function fetchApartmentIncidents(apartmentId: number): Promise<Incident[]> {
   const { data, error, status } = await supabase
     .from('incidents')
-    .select('id,apartment_id,item_id,free_text,kind,qty,status,photo_paths,comment,created_by,created_at,resolved_by,resolved_at,resolution_note,client_op_id')
+    .select('id,apartment_id,item_id,free_text,kind,qty,status,photo_paths,comment,created_by,created_at,resolved_by,resolved_at,resolution_note,client_op_id,writeoff_move_id')
     .eq('apartment_id', apartmentId)
     .order('created_at', { ascending: false })
     .limit(20)

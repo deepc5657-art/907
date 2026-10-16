@@ -2,13 +2,15 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath, URL } from 'node:url';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 export default defineConfig({
   plugins: [
     react(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.png', 'icons/app-icon-transparent-192.png', 'icons/app-icon-transparent-512.png', 'icons/maskable-512.png', 'qr.html', 'qr-manifest.webmanifest'],
+      includeAssets: ['favicon.png', 'icons/app-icon-transparent-192.png', 'icons/app-icon-transparent-512.png', 'icons/maskable-512.png', 'qr.html', 'qr-manifest.webmanifest', 'qr-sw.js'],
       manifest: {
         id: '/',
         scope: '/',
@@ -37,6 +39,17 @@ export default defineConfig({
         ],
       },
     }),
+    {
+      name: 'strip-qr-manifest-injection',
+      closeBundle() {
+        const qrPath = resolve('dist/qr.html');
+        if (existsSync(qrPath)) {
+          let content = readFileSync(qrPath, 'utf-8');
+          content = content.replace(/<link rel="manifest" href="\/manifest\.webmanifest"[^>]*>/g, '');
+          writeFileSync(qrPath, content);
+        }
+      },
+    },
   ],
   build: {
     rollupOptions: {
