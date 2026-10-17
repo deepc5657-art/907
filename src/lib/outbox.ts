@@ -20,7 +20,7 @@ export interface OutboxEntry {
 }
 
 const OUTBOX_KEY = 'cleaning-outbox'
-const MAX_ATTEMPTS = 10
+const MAX_ATTEMPTS = 20
 
 type Listener = () => void
 const listeners = new Set<Listener>()
@@ -135,6 +135,24 @@ export async function flushOutbox(userId: string): Promise<void> {
         if (!session) {
           toast(currentDict().errors.auth, 'error')
         }
+        break
+      }
+
+      if (apiError.status != null && apiError.status >= 500) {
+        const newAttempts = entry.attempts + 1
+        if (newAttempts >= MAX_ATTEMPTS) {
+          await updateOutboxEntry(entry.id, (e) => {
+            e.status = 'failed'
+            e.lastError = apiError.message
+            e.attempts = newAttempts
+          })
+        } else {
+          await updateOutboxEntry(entry.id, (e) => {
+            e.attempts = newAttempts
+            e.lastError = apiError.message
+          })
+        }
+        notify()
         break
       }
 
