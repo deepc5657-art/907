@@ -94,8 +94,7 @@ export function UsersPage() {
   const handleRoleChange = async (id: string, role: AppRole) => {
     try {
       await invokeAdminUsers({ action: 'set_role', id, role })
-      toast(t.admin.users.renamed, 'success')
-      setChangingRole(null)
+      toast(t.admin.users.roleChanged, 'success')
       load()
     } catch (e) {
       const msg = errorMessage(e)
@@ -178,12 +177,10 @@ export function UsersPage() {
                   <button
                     onClick={() => {
                       const pw = prompt(t.admin.users.setPassword)
-                      if (pw && pw.length >= 8) {
+                      if (pw) {
                         invokeAdminUsers({ action: 'set_password', id: u.id, password: pw })
-                          .then(() => toast(t.admin.users.setPassword, 'success'))
+                          .then(() => toast(t.admin.users.passwordChanged, 'success'))
                           .catch((e: unknown) => toast(errorMessage(e), 'error'))
-                      } else if (pw) {
-                        toast(t.auth.bootstrapPassword, 'error')
                       }
                     }}
                     className="text-xs bg-app text-ink rounded-lg px-3 py-1.5 flex items-center gap-1.5"
@@ -415,7 +412,7 @@ function UserCreateForm({ onClose, onCreated }: { onClose: () => void; onCreated
                 type={showPw ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={t.admin.users.passwordHint}
+                placeholder={t.admin.users.passwordAny}
                 className="w-full bg-app rounded-xl px-4 py-2.5 pr-10 text-sm focus:outline-none"
               />
               <button onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted">
@@ -428,7 +425,7 @@ function UserCreateForm({ onClose, onCreated }: { onClose: () => void; onCreated
           <button onClick={onClose} className="flex-1 bg-app text-ink rounded-xl py-3 font-medium">{t.cleaning.cancel}</button>
           <button
             onClick={handleCreate}
-            disabled={submitting || !login.trim() || !fullName.trim() || password.length < 8}
+            disabled={submitting || !login.trim() || !fullName.trim() || !password}
             className="flex-1 bg-accent text-white rounded-xl py-3 font-medium disabled:opacity-40"
           >
             {t.admin.users.add}

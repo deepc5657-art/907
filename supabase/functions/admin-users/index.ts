@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
         const fullName = String(b.full_name ?? '').trim();
         const role = ['admin', 'manager', 'supervisor'].includes(String(b.role)) ? String(b.role) : 'supervisor';
         if (!/^[a-z0-9._-]{3,32}$/.test(login)) return json({ error: 'invalid_login', message: 'Login must be 3-32 chars: a-z, 0-9, . _ -' }, 400);
-        if (password.length < 8) return json({ error: 'weak_password', message: 'Password must be at least 8 characters' }, 400);
+        if (password.length < 1) return json({ error: 'weak_password', message: 'Password is required' }, 400);
         if (!fullName) return json({ error: 'missing_name', message: 'Name is required' }, 400);
         if (fullName.length > 100) return json({ error: 'name_too_long', message: 'Name must be 100 characters or fewer' }, 400);
         const { data: created, error } = await admin.auth.admin.createUser({
@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
       case 'set_password': {
         const target = await loadTarget();
         if (!target) return json({ error: 'not_found', message: 'User not found' }, 404);
-        if (String(b.password ?? '').length < 8) return json({ error: 'weak_password', message: 'Password must be at least 8 characters' }, 400);
+        if (String(b.password ?? '').length < 1) return json({ error: 'weak_password', message: 'Password is required' }, 400);
         const { error } = await admin.auth.admin.updateUserById(b.id, { password: b.password });
         return error ? json({ error: 'update_failed', message: error.message }, 400) : json({ ok: true });
       }

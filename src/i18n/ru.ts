@@ -419,6 +419,8 @@ export const ru = {
       rename: 'Переименовать',
       renameTitle: 'Переименовать пользователя',
       renamed: 'Имя изменено',
+      roleChanged: 'Роль изменена',
+      passwordChanged: 'Пароль изменён',
       filterAll: 'Все',
       filterAdmin: 'Администратор',
       filterManager: 'Менеджер',
@@ -428,6 +430,7 @@ export const ru = {
       lastAdminError: 'Нельзя удалить последнего администратора',
       selfDeactivateError: 'Нельзя отключить самого себя',
       passwordHint: 'мин. 8 символов',
+      passwordAny: 'Любой пароль',
     },
     adminIncidents: {
       title: 'Заявки о поломках',

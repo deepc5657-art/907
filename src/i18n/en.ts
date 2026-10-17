@@ -421,6 +421,8 @@ export const en: Dict = {
       rename: 'Rename',
       renameTitle: 'Rename user',
       renamed: 'Name changed',
+      roleChanged: 'Role changed',
+      passwordChanged: 'Password changed',
       filterAll: 'All',
       filterAdmin: 'Administrator',
       filterManager: 'Manager',
@@ -430,6 +432,7 @@ export const en: Dict = {
       lastAdminError: 'Cannot delete the last administrator',
       selfDeactivateError: 'Cannot deactivate yourself',
       passwordHint: 'min. 8 characters',
+      passwordAny: 'Any password',
     },
     adminIncidents: {
       title: 'Breakdown requests',

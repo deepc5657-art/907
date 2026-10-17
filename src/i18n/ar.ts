@@ -422,6 +422,8 @@ export const ar: Dict = {
       rename: 'غيّر الاسم',
       renameTitle: 'غيّر اسم المستخدم',
       renamed: 'الاسم اتغيّر',
+      roleChanged: 'الدور اتغيّر',
+      passwordChanged: 'كلمة السر اتغيّرت',
       filterAll: 'الكل',
       filterAdmin: 'مدير',
       filterManager: 'مدير ميداني',
@@ -431,6 +433,7 @@ export const ar: Dict = {
       lastAdminError: 'مينفعش تمسح آخر مدير',
       selfDeactivateError: 'مينفعش تقفل حسابك',
       passwordHint: 'على الأقل ٨ حروف',
+      passwordAny: 'أي كلمة سر',
     },
     adminIncidents: {
       title: 'طلبات الأعطال',
