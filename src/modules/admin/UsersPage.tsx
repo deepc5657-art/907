@@ -12,13 +12,17 @@ async function invokeAdminUsers(body: Record<string, unknown>): Promise<Record<s
     throw new Error(data.error)
   }
   if (!error) return (data ?? {}) as Record<string, unknown>
-  const context = (error as { context?: unknown }).context
+  const context = (error as { context?: Response }).context
   if (context instanceof Response) {
     try {
-      const bodyData = await context.json() as { error?: string }
-      if (bodyData.error) throw new Error(bodyData.error)
-    } catch (responseError) {
-      if (responseError instanceof Error && responseError.message !== 'Unexpected end of JSON input') throw responseError
+      const text = await context.text()
+      if (text) {
+        const bodyData = JSON.parse(text) as { error?: string; message?: string; code?: string }
+        const msg = bodyData.error ?? bodyData.code ?? bodyData.message
+        if (msg) throw new Error(msg)
+      }
+    } catch (extracted) {
+      if (extracted instanceof Error) throw extracted
     }
   }
   throw error
