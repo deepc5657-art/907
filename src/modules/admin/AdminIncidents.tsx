@@ -5,9 +5,10 @@ import type { Incident, Apartment, IncidentStatus, IncidentKind } from '@/lib/da
 import { useI18n } from '@/i18n'
 import { formatDateTime } from '@/lib/format'
 import { toast, errorMessage } from '@/lib/toast'
-import { Wrench, Package, CircleAlert as AlertCircle, Check, X, Loader as Loader2 } from 'lucide-react'
+import { Wrench, Package, CircleAlert as AlertCircle, Check, X, Loader as Loader2, ChevronRight, ImageIcon } from 'lucide-react'
 import { ErrorState } from '@/components/ErrorState'
 import { friendlyMessage } from '@/lib/errors'
+import { IncidentDetailModal, fetchProfileName } from '@/modules/incidents/IncidentDetailModal'
 
 const statusColors: Record<IncidentStatus, string> = {
   new: 'bg-warn-soft text-warn',
@@ -43,6 +44,9 @@ export function AdminIncidents() {
   const [note, setNote] = useState('')
   const [force, setForce] = useState(false)
   const [processing, setProcessing] = useState(false)
+  const [selected, setSelected] = useState<Incident | null>(null)
+  const [authorName, setAuthorName] = useState<string | null>(null)
+  const [resolverName, setResolverName] = useState<string | null>(null)
 
   const load = () => {
     setLoading(true)
@@ -56,6 +60,14 @@ export function AdminIncidents() {
   useEffect(() => { load() }, [])
 
   const aptMap = useMemo(() => new Map(apartments.map((a) => [a.id, a.code])), [apartments])
+
+  useEffect(() => {
+    if (!selected) return
+    setAuthorName(null)
+    setResolverName(null)
+    if (selected.created_by) fetchProfileName(selected.created_by).then(setAuthorName)
+    if (selected.resolved_by) fetchProfileName(selected.resolved_by).then(setResolverName)
+  }, [selected])
 
   const handleAction = async () => {
     if (!actionIncident) return
@@ -88,51 +100,74 @@ export function AdminIncidents() {
         <div className="space-y-3">
           {incidents.map((inc) => {
             const Icon = kindIcons[inc.kind]
+            const hasPhotos = inc.photo_paths.length > 0
             return (
               <div key={inc.id} className="bg-surface rounded-xl border border-line px-4 py-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 bg-app rounded-lg flex items-center justify-center shrink-0">
-                    <Icon className="w-4 h-4 text-muted" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium text-ink">{aptMap.get(inc.apartment_id) ?? `#${n(String(inc.apartment_id))}`}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[inc.status]}`}>{statusLabels[inc.status]}</span>
+                <button
+                  onClick={() => setSelected(inc)}
+                  className="w-full text-left"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 bg-app rounded-lg flex items-center justify-center shrink-0">
+                      <Icon className="w-4 h-4 text-muted" />
                     </div>
-                    <p className="text-sm text-ink">{inc.free_text ?? `#${n(String(inc.item_id))}`}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-muted">{kindLabels[inc.kind]}</span>
-                      <span className="text-xs text-muted">·</span>
-                      <span className="text-xs text-muted">{n(String(inc.qty))} {t.common.units.pcs}</span>
-                      <span className="text-xs text-muted">·</span>
-                      <span className="text-xs text-muted">{n(formatDateTime(inc.created_at))}</span>
-                    </div>
-                    {inc.comment && <p className="text-xs text-muted mt-1.5 bg-app rounded-lg px-2.5 py-1.5">{inc.comment}</p>}
-                    {inc.resolution_note && <p className="text-xs text-muted mt-1">{inc.resolution_note}</p>}
-                    {inc.status === 'new' && (
-                      <div className="flex gap-2 mt-2">
-                        <button
-                          onClick={() => { setActionIncident({ incident: inc, decision: 'confirm' }); setNote(''); setForce(false) }}
-                          className="text-xs bg-ok-soft text-ok rounded-lg px-3 py-1.5 flex items-center gap-1.5"
-                        >
-                          <Check className="w-3 h-3" />
-                          {t.admin.adminIncidents.confirm}
-                        </button>
-                        <button
-                          onClick={() => { setActionIncident({ incident: inc, decision: 'reject' }); setNote(''); setForce(false) }}
-                          className="text-xs bg-bad-soft text-bad rounded-lg px-3 py-1.5 flex items-center gap-1.5"
-                        >
-                          <X className="w-3 h-3" />
-                          {t.admin.adminIncidents.reject}
-                        </button>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-medium text-ink">{aptMap.get(inc.apartment_id) ?? `#${n(String(inc.apartment_id))}`}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[inc.status]}`}>{statusLabels[inc.status]}</span>
                       </div>
-                    )}
+                      <p className="text-sm text-ink line-clamp-2">{inc.free_text ?? `#${n(String(inc.item_id))}`}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-muted">{kindLabels[inc.kind]}</span>
+                        <span className="text-xs text-muted">·</span>
+                        <span className="text-xs text-muted">{n(String(inc.qty))} {t.common.units.pcs}</span>
+                        <span className="text-xs text-muted">·</span>
+                        <span className="text-xs text-muted">{n(formatDateTime(inc.created_at))}</span>
+                      </div>
+                      {inc.comment && <p className="text-xs text-muted mt-1.5 bg-app rounded-lg px-2.5 py-1.5 line-clamp-2">{inc.comment}</p>}
+                      {hasPhotos && (
+                        <div className="flex items-center gap-1 mt-1.5 text-xs text-muted">
+                          <ImageIcon className="w-3.5 h-3.5" />
+                          <span>{inc.photo_paths.length}</span>
+                        </div>
+                      )}
+                      {inc.resolution_note && <p className="text-xs text-muted mt-1 line-clamp-1">{inc.resolution_note}</p>}
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted shrink-0 mt-1" />
                   </div>
-                </div>
+                </button>
+                {inc.status === 'new' && (
+                  <div className="flex gap-2 mt-2 pl-12">
+                    <button
+                      onClick={() => { setActionIncident({ incident: inc, decision: 'confirm' }); setNote(''); setForce(false) }}
+                      className="text-xs bg-ok-soft text-ok rounded-lg px-3 py-1.5 flex items-center gap-1.5"
+                    >
+                      <Check className="w-3 h-3" />
+                      {t.admin.adminIncidents.confirm}
+                    </button>
+                    <button
+                      onClick={() => { setActionIncident({ incident: inc, decision: 'reject' }); setNote(''); setForce(false) }}
+                      className="text-xs bg-bad-soft text-bad rounded-lg px-3 py-1.5 flex items-center gap-1.5"
+                    >
+                      <X className="w-3 h-3" />
+                      {t.admin.adminIncidents.reject}
+                    </button>
+                  </div>
+                )}
               </div>
             )
           })}
         </div>
+      )}
+
+      {selected && (
+        <IncidentDetailModal
+          incident={selected}
+          apartmentCode={aptMap.get(selected.apartment_id)}
+          authorName={authorName}
+          resolverName={resolverName}
+          onClose={() => setSelected(null)}
+        />
       )}
 
       {actionIncident && (

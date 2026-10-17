@@ -6,7 +6,8 @@ import { useAuth } from '@/modules/core/store'
 import type { Incident, SvApartment, IncidentStatus, IncidentKind } from '@/lib/database.types'
 import { useI18n } from '@/i18n'
 import { formatDateTime } from '@/lib/format'
-import { Plus, Wrench, Package, CircleAlert as AlertCircle } from 'lucide-react'
+import { Plus, Wrench, Package, CircleAlert as AlertCircle, ChevronRight, Image as ImageIcon } from 'lucide-react'
+import { IncidentDetailModal, fetchProfileName } from '@/modules/incidents/IncidentDetailModal'
 
 const statusColors: Record<IncidentStatus, string> = {
   new: 'bg-warn-soft text-warn',
@@ -39,6 +40,7 @@ export function IncidentList() {
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [apartments, setApartments] = useState<SvApartment[]>([])
   const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState<Incident | null>(null)
 
   useEffect(() => {
     if (!profile) return
@@ -70,8 +72,13 @@ export function IncidentList() {
         <div className="space-y-3">
           {incidents.map((inc) => {
             const Icon = kindIcons[inc.kind]
+            const hasPhotos = inc.photo_paths.length > 0
             return (
-              <div key={inc.id} className="bg-surface rounded-xl border border-line px-4 py-3">
+              <button
+                key={inc.id}
+                onClick={() => setSelected(inc)}
+                className="w-full text-left bg-surface rounded-xl border border-line px-4 py-3 transition-colors hover:bg-app active:bg-app"
+              >
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 bg-app rounded-lg flex items-center justify-center shrink-0">
                     <Icon className="w-4 h-4 text-muted" />
@@ -81,7 +88,7 @@ export function IncidentList() {
                       <span className="text-sm font-medium text-ink">{aptMap.get(inc.apartment_id) ?? `#${n(String(inc.apartment_id))}`}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[inc.status]}`}>{statusLabels[inc.status]}</span>
                     </div>
-                    <p className="text-sm text-ink">{inc.item_id ? `#${n(String(inc.item_id))}` : inc.free_text ?? '—'}</p>
+                    <p className="text-sm text-ink line-clamp-2">{inc.item_id ? `#${n(String(inc.item_id))}` : inc.free_text ?? '—'}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-muted">{kindLabels[inc.kind]}</span>
                       <span className="text-xs text-muted">·</span>
@@ -89,14 +96,56 @@ export function IncidentList() {
                       <span className="text-xs text-muted">·</span>
                       <span className="text-xs text-muted">{n(formatDateTime(inc.created_at))}</span>
                     </div>
-                    {inc.comment && <p className="text-xs text-muted mt-1.5 bg-app rounded-lg px-2.5 py-1.5">{inc.comment}</p>}
+                    {inc.comment && <p className="text-xs text-muted mt-1.5 bg-app rounded-lg px-2.5 py-1.5 line-clamp-2">{inc.comment}</p>}
+                    {hasPhotos && (
+                      <div className="flex items-center gap-1 mt-1.5 text-xs text-muted">
+                        <ImageIcon className="w-3.5 h-3.5" />
+                        <span>{inc.photo_paths.length}</span>
+                      </div>
+                    )}
                   </div>
+                  <ChevronRight className="w-4 h-4 text-muted shrink-0 mt-1" />
                 </div>
-              </div>
+              </button>
             )
           })}
         </div>
       )}
+      {selected && (
+        <IncidentDetailModalWithNames
+          incident={selected}
+          apartmentCode={aptMap.get(selected.apartment_id)}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
+  )
+}
+
+function IncidentDetailModalWithNames({
+  incident,
+  apartmentCode,
+  onClose,
+}: {
+  incident: Incident
+  apartmentCode?: string
+  onClose: () => void
+}) {
+  const [authorName, setAuthorName] = useState<string | null>(null)
+  const [resolverName, setResolverName] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (incident.created_by) fetchProfileName(incident.created_by).then(setAuthorName)
+    if (incident.resolved_by) fetchProfileName(incident.resolved_by).then(setResolverName)
+  }, [incident.created_by, incident.resolved_by])
+
+  return (
+    <IncidentDetailModal
+      incident={incident}
+      apartmentCode={apartmentCode}
+      authorName={authorName}
+      resolverName={resolverName}
+      onClose={onClose}
+    />
   )
 }

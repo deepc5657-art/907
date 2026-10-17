@@ -225,6 +225,11 @@ export const en: Dict = {
     detailDate: 'Date',
     detailPhotos: 'Photos',
     noPhotos: 'No photos',
+    detailAuthor: 'Author',
+    detailResolvedBy: 'Resolved by',
+    detailResolvedAt: 'Resolution date',
+    detailResolutionNote: 'Resolution note',
+    detailApartment: 'Apartment',
   },
   admin: {
     nav: {

@@ -226,6 +226,11 @@ export const ar: Dict = {
     detailDate: 'التاريخ',
     detailPhotos: 'صور',
     noPhotos: 'مفيش صور',
+    detailAuthor: 'المرسل',
+    detailResolvedBy: 'اتحل بواسطة',
+    detailResolvedAt: 'تاريخ الحل',
+    detailResolutionNote: 'ملاحظة الحل',
+    detailApartment: 'الشقة',
   },
   admin: {
     nav: {

@@ -223,6 +223,11 @@ export const ru = {
     detailDate: 'Дата',
     detailPhotos: 'Фото',
     noPhotos: 'Фото нет',
+    detailAuthor: 'Автор',
+    detailResolvedBy: 'Решение принял',
+    detailResolvedAt: 'Дата решения',
+    detailResolutionNote: 'Примечание к решению',
+    detailApartment: 'Квартира',
   },
   admin: {
     nav: {
