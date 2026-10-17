@@ -5,6 +5,7 @@ import { useI18n } from '@/i18n'
 import { formatDateTime } from '@/lib/format'
 import { X, Wrench, Package, CircleAlert as AlertCircle, Image as ImageIcon } from 'lucide-react'
 import type { Incident, IncidentKind, IncidentStatus } from '@/lib/database.types'
+import { friendlyMessage } from '@/lib/errors'
 
 const kindIcons: Record<IncidentKind, React.ComponentType<{ className?: string }>> = {
   breakdown: Wrench,
@@ -58,14 +59,16 @@ export function IncidentDetailModal({
 }: IncidentDetailModalProps) {
   const { t, n } = useI18n()
   const [fileUrls, setFileUrls] = useState<Map<string, string>>(new Map())
+  const [urlError, setUrlError] = useState<string | null>(null)
   const Icon = kindIcons[incident.kind]
 
   useEffect(() => {
     if (incident.photo_paths.length === 0) return
     let cancelled = false
+    setUrlError(null)
     createSignedUrls(incident.photo_paths)
       .then((urls) => { if (!cancelled) setFileUrls(urls) })
-      .catch(() => {})
+      .catch((e) => { if (!cancelled) setUrlError(friendlyMessage(e)) })
     return () => { cancelled = true }
   }, [incident.photo_paths])
 
@@ -130,6 +133,7 @@ export function IncidentDetailModal({
           {incident.photo_paths.length > 0 && (
             <div className="pt-2 border-t border-line">
               <span className="text-xs text-muted block mb-1.5">{t.qr.detailPhotos}</span>
+              {urlError && <p className="text-xs text-bad mb-2">{urlError}</p>}
               <div className="space-y-2">
                 {incident.photo_paths.map((path) => {
                   const url = fileUrls.get(path)

@@ -65,6 +65,7 @@ export const en: Dict = {
     needLead: 'Indicate who cleaned',
     note: 'Note',
     notePlaceholder: 'Optional note…',
+    confirmClose: 'Close without saving?',
   },
   incidents: {
     title: 'New request',

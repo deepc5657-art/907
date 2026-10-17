@@ -15,12 +15,6 @@ import { Suspense, useEffect, lazy } from 'react'
 
 const SentryErrorBoundary = lazy(() => import('@/components/SentryErrorBoundary').then(m => ({ default: m.SentryErrorBoundary })))
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/qr-sw.js').catch(() => {})
-  })
-}
-
 function Loading() {
   const { t } = useI18n()
   return <div className="px-4 pt-8 text-center text-muted">{t.app.loading}</div>

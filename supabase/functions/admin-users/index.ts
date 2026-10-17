@@ -1,13 +1,15 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('ADMIN_CORS_ORIGIN') ?? '*',
+  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGIN') ?? Deno.env.get('ADMIN_CORS_ORIGIN') ?? '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
 };
 
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+const isWeakPasswordError = (msg: string): boolean => /password|weak/i.test(msg);
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 200, headers: corsHeaders });
@@ -63,11 +65,14 @@ Deno.serve(async (req) => {
           email: `${login}@${domain}`, password, email_confirm: true,
         });
         if (error || !created.user) {
-          const message = error?.message?.toLowerCase().includes('already')
-            ? 'login_taken'
-            : error?.message ?? 'create_failed';
-          const code = message === 'login_taken' ? 'login_taken' : 'create_failed';
-          return json({ error: code, message }, 400);
+          const authMsg = error?.message ?? 'create_failed';
+          if (authMsg.toLowerCase().includes('already')) {
+            return json({ error: 'login_taken', message: 'login_taken' }, 400);
+          }
+          if (isWeakPasswordError(authMsg)) {
+            return json({ error: 'weak_password', message: authMsg }, 400);
+          }
+          return json({ error: 'create_failed', message: authMsg }, 400);
         }
         const { error: pe } = await admin.from('profiles').insert({
           id: created.user.id, login, full_name: fullName, role,
@@ -83,7 +88,14 @@ Deno.serve(async (req) => {
         if (!target) return json({ error: 'not_found', message: 'User not found' }, 404);
         if (String(b.password ?? '').length < 1) return json({ error: 'weak_password', message: 'Password is required' }, 400);
         const { error } = await admin.auth.admin.updateUserById(b.id, { password: b.password });
-        return error ? json({ error: 'update_failed', message: error.message }, 400) : json({ ok: true });
+        if (error) {
+          const authMsg = error.message;
+          if (isWeakPasswordError(authMsg)) {
+            return json({ error: 'weak_password', message: authMsg }, 400);
+          }
+          return json({ error: 'update_failed', message: authMsg }, 400);
+        }
+        return json({ ok: true });
       }
       case 'set_active': {
         const target = await loadTarget();

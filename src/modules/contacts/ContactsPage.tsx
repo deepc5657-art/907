@@ -3,15 +3,22 @@ import { fetchContacts } from '@/modules/contacts/api'
 import type { Contact } from '@/lib/database.types'
 import { useI18n } from '@/i18n'
 import { Phone, MessageCircle, User } from 'lucide-react'
+import { ErrorState } from '@/components/ErrorState'
+import { friendlyMessage } from '@/lib/errors'
 
 export function ContactsPage() {
   const { t } = useI18n()
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchContacts().then(setContacts).catch(() => {}).finally(() => setLoading(false))
-  }, [])
+  const load = () => {
+    setLoading(true)
+    setLoadError(null)
+    fetchContacts().then(setContacts).catch((e) => setLoadError(friendlyMessage(e))).finally(() => setLoading(false))
+  }
+
+  useEffect(() => { load() }, [])
 
   const grouped = useMemo(() => {
     const map = new Map<string, Contact[]>()
@@ -29,6 +36,8 @@ export function ContactsPage() {
       <h1 className="text-xl font-semibold text-ink mb-4">{t.contacts.title}</h1>
       {loading ? (
         <p className="text-center text-muted mt-8">{t.app.loading}</p>
+      ) : loadError ? (
+        <ErrorState onRetry={load} />
       ) : contacts.length === 0 ? (
         <div className="flex flex-col items-center justify-center mt-16 text-muted">
           <Phone className="w-10 h-10 mb-3" />

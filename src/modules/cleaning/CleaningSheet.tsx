@@ -8,6 +8,7 @@ import { useI18n } from '@/i18n'
 import { friendlyMessage } from '@/lib/errors'
 import { formatQty } from '@/lib/format'
 import { X, Check, Loader as Loader2, TriangleAlert as AlertTriangle, Star, RefreshCw } from 'lucide-react'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 const writeoffTypes: NormType[] = ['turnover_replenish', 'cleaning_consumption']
 
@@ -30,7 +31,15 @@ export function CleaningSheet({ backTo }: { backTo?: string }) {
   const [error, setError] = useState<string | null>(null)
   const [offline, setOffline] = useState(false)
   const [goBackTimer, setGoBackTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
+  const [confirmClose, setConfirmClose] = useState(false)
   const clientOpIdRef = useRef<string>(crypto.randomUUID())
+
+  const hasUnsavedInput = selectedStaff.length > 0 || note.trim().length > 0
+
+  const handleBackdropClick = () => {
+    if (hasUnsavedInput) setConfirmClose(true)
+    else goBack()
+  }
 
   const loadReferenceData = async () => {
     if (!aptId || !profile) return
@@ -138,7 +147,7 @@ export function CleaningSheet({ backTo }: { backTo?: string }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex flex-col justify-end anim-scrim" onClick={goBack} role="dialog" aria-modal="true" aria-label={t.cleaning.title}>
+    <div className="fixed inset-0 bg-black/40 z-50 flex flex-col justify-end anim-scrim" onClick={handleBackdropClick} role="dialog" aria-modal="true" aria-label={t.cleaning.title}>
       <div className="bg-surface rounded-t-2xl max-h-[90dvh] overflow-y-auto anim-sheet" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-center pt-3 pb-1">
           <div className="w-10 h-1 rounded-full" style={{ background: 'var(--line)' }} />
@@ -170,12 +179,12 @@ export function CleaningSheet({ backTo }: { backTo?: string }) {
                   const isLead = leadStaffId === s.id
                   return (
                     <div key={s.id} className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors ${selected ? 'border-accent bg-accent-soft' : 'border-line'}`}>
-                      <button onClick={() => toggleStaff(s.id)} aria-label={s.full_name} aria-pressed={selected} className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors shrink-0 ${selected ? 'border-accent bg-accent' : 'border-[var(--line)]'}`}>
+                      <button onClick={() => toggleStaff(s.id)} aria-label={s.full_name} aria-pressed={selected} className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors shrink-0 min-w-[44px] min-h-[44px] -ml-2.5 ${selected ? 'border-accent bg-accent' : 'border-[var(--line)]'}`}>
                         {selected && <Check className="w-4 h-4 text-white" />}
                       </button>
                       <span className="flex-1 text-sm text-ink">{s.full_name}</span>
                       {selected && (
-                        <button onClick={() => setLead(s.id)} aria-pressed={isLead} aria-label={`${t.cleaning.leadStaff}: ${s.full_name}`} className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full transition-colors min-h-[36px] ${isLead ? 'bg-warn-soft text-warn' : 'text-muted hover:text-warn'}`}>
+                        <button onClick={() => setLead(s.id)} aria-pressed={isLead} aria-label={`${t.cleaning.leadStaff}: ${s.full_name}`} className={`flex items-center gap-1 text-xs px-3 py-2 rounded-full transition-colors min-h-[44px] ${isLead ? 'bg-warn-soft text-warn' : 'text-muted hover:text-warn'}`}>
                           <Star className={`w-3 h-3 ${isLead ? 'fill-[var(--warn)]' : ''}`} />
                           {t.cleaning.leadStaff}
                         </button>
@@ -242,6 +251,15 @@ export function CleaningSheet({ backTo }: { backTo?: string }) {
           </button>
         </div>
       </div>
+      {confirmClose && (
+        <ConfirmDialog
+          open={true}
+          title={t.cleaning.cancel}
+          message={t.cleaning.confirmClose}
+          onConfirm={() => { setConfirmClose(false); goBack() }}
+          onCancel={() => setConfirmClose(false)}
+        />
+      )}
     </div>
   )
 }

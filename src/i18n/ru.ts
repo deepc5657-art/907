@@ -63,6 +63,7 @@ export const ru = {
     needLead: 'Укажите, кто убирал',
     note: 'Примечание',
     notePlaceholder: 'Необязательное примечание…',
+    confirmClose: 'Закрыть без сохранения?',
   },
   incidents: {
     title: 'Новая заявка',

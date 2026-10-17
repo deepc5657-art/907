@@ -80,8 +80,17 @@ test.describe('Security — supervisor', () => {
       p_reason: 'test',
     } as never)
     expectBlocked(e2)
-    const { error: e3 } = await c.rpc('post_document' as never, {} as never)
-    expectBlocked(e3)
+    const { error: e3 } = await c.rpc('post_document' as never, {
+      p_op: 'receipt', p_lines: [{ item_id: 1, qty: 1 }],
+    } as never)
+    expect(e3).toBeTruthy()
+    expect((e3 as { code?: string }).code).toBe('42501')
+
+    const { error: e4 } = await c.rpc('post_move' as never, {
+      p_op: 'receipt', p_item: 1, p_qty: 1,
+    } as never)
+    expect(e4).toBeTruthy()
+    expect((e4 as { code?: string }).code).toBe('42501')
   })
 
   test('supervisor cannot read stock_moves or items', async () => {

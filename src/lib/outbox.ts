@@ -148,7 +148,7 @@ export async function flushOutbox(userId: string): Promise<void> {
       }
 
       const newAttempts = entry.attempts + 1
-      if (newAttempts >= MAX_ATTEMPTS) {
+      if (apiError.status != null && apiError.status >= 500 && newAttempts >= MAX_ATTEMPTS) {
         await updateOutboxEntry(entry.id, (e) => {
           e.status = 'failed'
           e.lastError = apiError.message

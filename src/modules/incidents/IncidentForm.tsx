@@ -6,6 +6,7 @@ import type { SvApartment, SvItem, IncidentKind } from '@/lib/database.types'
 import { useAuth } from '@/modules/core/store'
 import { useI18n } from '@/i18n'
 import { friendlyMessage } from '@/lib/errors'
+import { ErrorState } from '@/components/ErrorState'
 import { ArrowLeft, Camera, X, Loader as Loader2 } from 'lucide-react'
 
 export function IncidentForm({ backTo }: { backTo?: string }) {
@@ -23,6 +24,7 @@ export function IncidentForm({ backTo }: { backTo?: string }) {
   const [apartments, setApartments] = useState<SvApartment[]>([])
   const [items, setItems] = useState<SvItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [aptId, setAptId] = useState<number | null>(preselectApt ? Number(preselectApt) : null)
   const [itemId, setItemId] = useState<number | null>(null)
   const [freeText, setFreeText] = useState('')
@@ -37,12 +39,19 @@ export function IncidentForm({ backTo }: { backTo?: string }) {
   const clientOpIdRef = useRef<string>(crypto.randomUUID())
   const isOnline = navigator.onLine
 
-  useEffect(() => {
+  const loadReferenceData = () => {
     if (!profile) return
+    setLoading(true)
+    setLoadError(null)
     Promise.all([fetchApartments(profile.id), fetchItems()])
       .then(([a, i]) => { setApartments(a); setItems(i) })
-      .catch(() => {})
+      .catch((e) => setLoadError(friendlyMessage(e)))
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadReferenceData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id])
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,6 +95,7 @@ export function IncidentForm({ backTo }: { backTo?: string }) {
   }
 
   if (loading) return <div className="px-4 pt-8 text-center text-muted">{t.app.loading}</div>
+  if (loadError) return <ErrorState onRetry={loadReferenceData} />
 
   return (
     <div className="min-h-screen bg-app">

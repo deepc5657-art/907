@@ -5,7 +5,10 @@ import type { SvApartment, SvNorm, ApartmentNote, NormType } from '@/lib/databas
 import { useAuth } from '@/modules/core/store'
 import { useI18n } from '@/i18n'
 import { formatDateTime, isToday, formatQty } from '@/lib/format'
+import { toast } from '@/lib/toast'
 import { ArrowLeft, Wrench, Sparkles, ClipboardList, Send, CircleCheck as CheckCircle2 } from 'lucide-react'
+import { ErrorState } from '@/components/ErrorState'
+import { friendlyMessage } from '@/lib/errors'
 
 type Tab = 'norms' | 'comments'
 
@@ -27,15 +30,23 @@ export function ApartmentDetail() {
   const [notes, setNotes] = useState<ApartmentNote[]>([])
   const [tab, setTab] = useState<Tab>('norms')
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [noteText, setNoteText] = useState('')
   const [sendingNote, setSendingNote] = useState(false)
 
-  useEffect(() => {
+  const loadAll = () => {
     if (!aptId || !profile) return
+    setLoading(true)
+    setLoadError(null)
     Promise.all([fetchApartmentById(aptId), fetchNorms(profile.id, aptId), fetchNotes(aptId)])
       .then(([a, n, no]) => { setApartment(a); setNorms(n); setNotes(no) })
-      .catch(() => {})
+      .catch((e) => setLoadError(friendlyMessage(e)))
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadAll()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aptId, profile?.id])
 
   const groupedNorms = useMemo(() => {
@@ -55,14 +66,15 @@ export function ApartmentDetail() {
       await addNote(aptId, noteText.trim())
       setNoteText('')
       setNotes(await fetchNotes(aptId))
-    } catch {
-      // ignore
+    } catch (e) {
+      toast(friendlyMessage(e), 'error')
     } finally {
       setSendingNote(false)
     }
   }
 
   if (loading) return <div className="px-4 pt-8 text-center text-muted">{t.app.loading}</div>
+  if (loadError) return <ErrorState onRetry={loadAll} />
   if (!apartment) return <div className="px-4 pt-8 text-center text-muted">{t.common.notFound}</div>
 
   return (

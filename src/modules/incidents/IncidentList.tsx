@@ -6,6 +6,8 @@ import { useAuth } from '@/modules/core/store'
 import type { Incident, SvApartment, IncidentStatus, IncidentKind } from '@/lib/database.types'
 import { useI18n } from '@/i18n'
 import { formatDateTime } from '@/lib/format'
+import { friendlyMessage } from '@/lib/errors'
+import { ErrorState } from '@/components/ErrorState'
 import { Plus, Wrench, Package, CircleAlert as AlertCircle, ChevronRight, Image as ImageIcon } from 'lucide-react'
 import { IncidentDetailModal, fetchProfileName } from '@/modules/incidents/IncidentDetailModal'
 
@@ -40,14 +42,22 @@ export function IncidentList() {
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [apartments, setApartments] = useState<SvApartment[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [selected, setSelected] = useState<Incident | null>(null)
 
-  useEffect(() => {
+  const loadAll = () => {
     if (!profile) return
+    setLoading(true)
+    setLoadError(null)
     Promise.all([fetchMyIncidents(profile.id), fetchApartments(profile.id)])
       .then(([inc, apts]) => { setIncidents(inc); setApartments(apts) })
-      .catch(() => {})
+      .catch((e) => setLoadError(friendlyMessage(e)))
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadAll()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id])
 
   const aptMap = new Map(apartments.map((a) => [a.id, a.code]))
@@ -63,6 +73,8 @@ export function IncidentList() {
       </div>
       {loading ? (
         <p className="text-center text-muted mt-8">{t.app.loading}</p>
+      ) : loadError ? (
+        <ErrorState onRetry={loadAll} />
       ) : incidents.length === 0 ? (
         <div className="flex flex-col items-center justify-center mt-16 text-muted">
           <Wrench className="w-10 h-10 mb-3" />

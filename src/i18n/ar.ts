@@ -66,6 +66,7 @@ export const ar: Dict = {
     needLead: 'حدّد مين نضّف',
     note: 'ملاحظة',
     notePlaceholder: 'ملاحظة اختيارية…',
+    confirmClose: 'تقفل من غير حفظ؟',
   },
   incidents: {
     title: 'طلب جديد',
