@@ -48,7 +48,7 @@ export function BootstrapScreen() {
   )
 }
 
-export function LoginScreen() {
+export function LoginScreen({ title, subtitle }: { title?: string; subtitle?: string } = {}) {
   const { t, lang } = useI18n()
   const { signIn } = useAuth()
   const error = useAuth((s) => s.error)
@@ -76,8 +76,8 @@ export function LoginScreen() {
             <Package className="w-7 h-7 text-white" />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-semibold text-ink">{t.auth.loginTitle}</h1>
-            <p className="text-sm text-muted mt-1">{t.auth.loginSubtitle}</p>
+            <h1 className="text-2xl font-semibold text-ink">{title ?? t.auth.loginTitle}</h1>
+            <p className="text-sm text-muted mt-1">{subtitle ?? t.auth.loginSubtitle}</p>
           </div>
         </div>
         <form onSubmit={submit} className="space-y-4">

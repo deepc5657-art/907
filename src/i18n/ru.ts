@@ -223,6 +223,7 @@ export const ru = {
     detailDate: 'Дата',
     detailPhotos: 'Фото',
     noPhotos: 'Фото нет',
+    qrAccessDenied: 'У вас нет доступа к этому приложению. Обратитесь к администратору, чтобы получить логин и пароль.',
     detailAuthor: 'Автор',
     detailResolvedBy: 'Решение принял',
     detailResolvedAt: 'Дата решения',

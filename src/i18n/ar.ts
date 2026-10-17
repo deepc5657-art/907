@@ -226,6 +226,7 @@ export const ar: Dict = {
     detailDate: 'التاريخ',
     detailPhotos: 'صور',
     noPhotos: 'مفيش صور',
+    qrAccessDenied: 'مفيش عندك صلاحية للبرنامج ده. كلم الأدمن عشان يديك اسم دخول وكلمة سر.',
     detailAuthor: 'المرسل',
     detailResolvedBy: 'اتحل بواسطة',
     detailResolvedAt: 'تاريخ الحل',

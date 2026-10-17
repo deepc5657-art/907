@@ -225,6 +225,7 @@ export const en: Dict = {
     detailDate: 'Date',
     detailPhotos: 'Photos',
     noPhotos: 'No photos',
+    qrAccessDenied: 'You do not have access to this app. Contact the administrator to get a login and password.',
     detailAuthor: 'Author',
     detailResolvedBy: 'Resolved by',
     detailResolvedAt: 'Resolution date',

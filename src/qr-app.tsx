@@ -89,7 +89,7 @@ function QrApp() {
       </div>
     )
   } else if (state === 'login' || !profile) {
-    content = <LoginScreen />
+    content = <LoginScreen title={t.qr.title} subtitle={t.qr.loginSubtitle} />
   } else {
     const role = profile.role
     const canUseQr = role === 'admin' || role === 'manager' || role === 'supervisor'
@@ -104,8 +104,11 @@ function QrApp() {
         </Routes>
       </HashRouter>
     ) : (
-      <div className="min-h-screen bg-app flex flex-col items-center justify-center px-6">
-        <p className="text-sm text-muted">{t.errors.noPrivilege}</p>
+      <div className="min-h-screen bg-app flex flex-col items-center justify-center px-6 text-center">
+        <p className="text-sm text-muted max-w-xs">{t.qr.qrAccessDenied}</p>
+        <button onClick={() => useAuth.getState().signOut()} className="mt-4 text-sm text-accent font-medium">
+          {t.qr.logout}
+        </button>
       </div>
     )
   }
