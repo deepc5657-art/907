@@ -102,7 +102,7 @@ export async function flushOutbox(userId: string): Promise<void> {
     let anySynced = false
 
     for (const entry of pending) {
-      const { error } = await supabase.rpc('complete_cleaning', {
+      const { error, status } = await supabase.rpc('complete_cleaning', {
         p_apartment_id: entry.apartmentId,
         p_cleaned_at: entry.cleanedAt,
         p_client_op_id: entry.clientOpId,
@@ -117,7 +117,7 @@ export async function flushOutbox(userId: string): Promise<void> {
         continue
       }
 
-      const apiError = toApiError(error)
+      const apiError = toApiError(error, status)
 
       if (apiError.code === '23505') {
         await removeOutboxEntry(entry.id)
@@ -147,8 +147,17 @@ export async function flushOutbox(userId: string): Promise<void> {
         break
       }
 
+      if (apiError.code && (apiError.status == null || apiError.status < 500)) {
+        await updateOutboxEntry(entry.id, (e) => {
+          e.status = 'failed'
+          e.lastError = apiError.message
+        })
+        notify()
+        continue
+      }
+
       const newAttempts = entry.attempts + 1
-      if (apiError.status != null && apiError.status >= 500 && newAttempts >= MAX_ATTEMPTS) {
+      if (newAttempts >= MAX_ATTEMPTS) {
         await updateOutboxEntry(entry.id, (e) => {
           e.status = 'failed'
           e.lastError = apiError.message

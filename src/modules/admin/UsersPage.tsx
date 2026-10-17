@@ -1,15 +1,43 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useI18n } from '@/i18n'
+import { useI18n, currentDict } from '@/i18n'
 import { toast, errorMessage } from '@/lib/toast'
 import { Plus, Trash2, Eye, EyeOff, Copy, Check, X, Lock, CreditCard as Edit3, Shield, QrCode, UserCheck, ShieldCheck } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import type { AppRole } from '@/lib/database.types'
 
+const EDGE_ERROR_CODES = new Set([
+  'weak_password', 'invalid_login', 'name_too_long', 'login_taken', 'create_failed', 'update_failed',
+])
+
+function mapEdgeError(code: string, serverMessage: string | undefined): string {
+  const d = currentDict()
+  switch (code) {
+    case 'weak_password':
+      return serverMessage ? `${d.admin.users.errWeakPassword}: ${serverMessage}` : d.admin.users.errWeakPassword
+    case 'invalid_login':
+      return d.admin.users.errInvalidLogin
+    case 'name_too_long':
+      return d.admin.users.errNameTooLong
+    case 'login_taken':
+      return d.admin.users.errLoginTaken
+    case 'create_failed':
+      return d.admin.users.errCreateFailed
+    case 'update_failed':
+      return d.admin.users.errUpdateFailed
+    default:
+      return serverMessage ?? code
+  }
+}
+
 async function invokeAdminUsers(body: Record<string, unknown>): Promise<Record<string, unknown>> {
   const { data, error } = await supabase.functions.invoke('admin-users', { body })
   if (!error && data && typeof data === 'object' && 'error' in data && typeof data.error === 'string') {
-    throw new Error(data.error)
+    const bodyData = data as { error: string; message?: string }
+    if (EDGE_ERROR_CODES.has(bodyData.error)) {
+      throw new Error(mapEdgeError(bodyData.error, bodyData.message))
+    }
+    throw new Error(bodyData.error)
   }
   if (!error) return (data ?? {}) as Record<string, unknown>
   const context = (error as { context?: Response }).context
@@ -18,8 +46,14 @@ async function invokeAdminUsers(body: Record<string, unknown>): Promise<Record<s
       const text = await context.text()
       if (text) {
         const bodyData = JSON.parse(text) as { error?: string; message?: string; code?: string }
-        const msg = bodyData.error ?? bodyData.code ?? bodyData.message
-        if (msg) throw new Error(msg)
+        const code = bodyData.error ?? bodyData.code
+        if (code) {
+          if (EDGE_ERROR_CODES.has(code)) {
+            throw new Error(mapEdgeError(code, bodyData.message))
+          }
+          throw new Error(code)
+        }
+        if (bodyData.message) throw new Error(bodyData.message)
       }
     } catch (extracted) {
       if (extracted instanceof Error) throw extracted

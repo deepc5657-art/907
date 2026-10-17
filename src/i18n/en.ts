@@ -434,6 +434,12 @@ export const en: Dict = {
       selfDeactivateError: 'Cannot deactivate yourself',
       passwordHint: 'min. 8 characters',
       passwordAny: 'Any password',
+      errWeakPassword: 'Password rejected',
+      errInvalidLogin: 'Invalid login',
+      errNameTooLong: 'Name too long',
+      errLoginTaken: 'Login already taken',
+      errCreateFailed: 'Failed to create user',
+      errUpdateFailed: 'Failed to update',
     },
     adminIncidents: {
       title: 'Breakdown requests',

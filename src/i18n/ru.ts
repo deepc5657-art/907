@@ -432,6 +432,12 @@ export const ru = {
       selfDeactivateError: 'Нельзя отключить самого себя',
       passwordHint: 'мин. 8 символов',
       passwordAny: 'Любой пароль',
+      errWeakPassword: 'Пароль отклонён',
+      errInvalidLogin: 'Недопустимый логин',
+      errNameTooLong: 'Слишком длинное имя',
+      errLoginTaken: 'Логин уже занят',
+      errCreateFailed: 'Не удалось создать пользователя',
+      errUpdateFailed: 'Не удалось обновить',
     },
     adminIncidents: {
       title: 'Заявки о поломках',

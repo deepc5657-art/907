@@ -435,6 +435,12 @@ export const ar: Dict = {
       selfDeactivateError: 'مينفعش تقفل حسابك',
       passwordHint: 'على الأقل ٨ حروف',
       passwordAny: 'أي كلمة سر',
+      errWeakPassword: 'كلمة السر مرفوضة',
+      errInvalidLogin: 'اسم الدخول غير صالح',
+      errNameTooLong: 'الاسم طويل جداً',
+      errLoginTaken: 'اسم الدخول مأخوذ',
+      errCreateFailed: 'فشل إنشاء المستخدم',
+      errUpdateFailed: 'فشل التحديث',
     },
     adminIncidents: {
       title: 'طلبات الأعطال',
